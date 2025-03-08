@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecosystem Tools Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(to right, #e0f7fa, #f1f8e9); /* Fallback gradient */
+            color: #333;
+        }
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .tool-card {
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .tool-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+        .tool-card h5 {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .btn-success {
+            background-color: #4CAF50;
+            border: none;
+        }
+        .btn-success:hover {
+            background-color: #45a049;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 14px;
+            color: #777;
+            padding: 20px 0;
+            background: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+        }
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Ecosystem Tools Dashboard</h1>
+        <p>Select a tool to explore</p>
+    </div>
+    <div class="container">
+        <div class="row g-4">
+            <!-- Tool 1 Placeholder -->
+            <div class="col-md-4">
+                <div class="card tool-card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Tool 1: Ecosystem Health Assessment</h5>
+                        <p class="card-text">Analyze and monitor the health of ecosystems.</p>
+                        <a href="tool1.html" class="btn btn-success" target="_self">
+                            Launch Tool
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- Tool 2 Placeholder -->
+            <div class="col-md-4">
+                <div class="card tool-card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Tool 2: Biodiversity Tracker</h5>
+                        <p class="card-text">Track species diversity and population trends.</p>
+                        <a href="tool2.html" class="btn btn-success" target="_self">
+                            Launch Tool
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- Tool 3 Placeholder -->
+            <div class="col-md-4">
+                <div class="card tool-card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Tool 3: Habitat Restoration Planner</h5>
+                        <p class="card-text">Plan and prioritize habitat restoration projects.</p>
+                        <a href="tool3.html" class="btn btn-success" target="_self">
+                            Launch Tool
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- Add more tools as needed -->
+        </div>
+    </div>
+    <div class="footer">
+        <p>Developed by Jay Rowley, 2025</p>
+        <p>
+            <a href="terms-of-use.html" target="_blank">Terms of Use</a>
+        </p>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

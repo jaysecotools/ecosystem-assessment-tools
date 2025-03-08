@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freshwater Quality Monitoring Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f0f8ff; /* Light blue background */
+            color: #333;
+        }
+        .dark-mode {
+            background-color: #333;
+            color: #f0f8ff;
+        }
+        .banner {
+            background-color: #1e90ff; /* Dodger blue */
+            color: white;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 10px;
+        }
+        .instructions {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #e0f7fa;
+            border: 1px solid #1e90ff; /* Dodger blue */
+            border-radius: 5px;
+        }
+        .dark-mode .instructions {
+            background-color: #444;
+            border: 1px solid #fff;
+        }
+        .slider-group {
+            margin-bottom: 20px;
+        }
+        .slider-label {
+            margin-bottom: 5px;
+        }
+        .slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        .output {
+            font-weight: bold;
+            color: #1e90ff; /* Dodger blue */
+        }
+        .checkbox-group {
+            margin-bottom: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 14px;
+            color: #777;
+        }
+        #dark-mode-toggle {
+            margin: 20px auto;
+            display: block;
+            padding: 5px 20px;
+            font-size: 14px;
+        }
+        .info-button {
+            background-color: #1e90ff; /* Dodger blue */
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 2px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 10px;
+            width: 15px;
+            height: 15px;
+            line-height: 11px;
+            text-align: center;
+        }
+        .info-button:hover {
+            background-color: #1c86ee; /* Slightly darker blue */
+        }
+        @media (max-width: 600px) {
+            .banner {
+                font-size: 18px;
+            }
+            .instructions, .checkbox-group, .slider-group {
+                font-size: 14px;
+            }
+            .slider-label, .output {
+                display: block;
+                margin-bottom: 10px;
+            }
+            canvas {
+                width: 100% !important;
+                height: auto !important;
+            }
+        }
+        /* Disclaimer Styles */
+        .disclaimer {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 10px; /* Adjusted font size */
+            color: #555;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Added box shadow */
+        }
+        .dark-mode .disclaimer {
+            background-color: #444;
+            border: 1px solid #fff;
+            color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="banner">
+        <h1>Freshwater Quality Monitoring Tool</h1>
+    </div>
+    <div class="container">
+        <button id="dark-mode-toggle">Toggle Dark Mode</button>
+        <div class="instructions">
+            <h2>Instructions</h2>
+            <ol>
+                <li>Select the water quality parameters you want to include in the assessment using the checkboxes below.</li>
+                <li>Hover over each parameter for a brief description (click the information icon on mobile).</li>
+                <li>Adjust the sliders to reflect the current state of each parameter (0 is worst, 5 is best).</li>
+                <li>The overall water quality score will be calculated based on the selected parameters and their values.</li>
+                <li>A visual representation of the water quality is provided in the radar chart below. The more blue, the better!</li>
+            </ol>
+        </div>
+        <div class="checkbox-group">
+            <label title="Measures the temperature of the water">
+                <input type="checkbox" class="component-checkbox" checked value="Temperature"> Temperature
+                <button class="info-button" data-description="Measures the temperature of the water">i</button>
+            </label><br>
+            <label title="Measures the acidity or alkalinity of the water">
+                <input type="checkbox" class="component-checkbox" checked value="pH Level"> pH Level
+                <button class="info-button" data-description="Measures the acidity or alkalinity of the water">i</button>
+            </label><br>
+            <label title="Evaluates the concentration of dissolved oxygen in the water">
+                <input type="checkbox" class="component-checkbox" checked value="Dissolved Oxygen"> Dissolved Oxygen
+                <button class="info-button" data-description="Evaluates the concentration of dissolved oxygen in the water">i</button>
+            </label><br>
+            <label title="Measures the water's ability to conduct electricity">
+                <input type="checkbox" class="component-checkbox" checked value="Conductivity"> Conductivity
+                <button class="info-button" data-description="Measures the water's ability to conduct electricity">i</button>
+            </label><br>
+            <label title="Measures the combined content of all inorganic and organic substances in water">
+                <input type="checkbox" class="component-checkbox" checked value="Total Dissolved Solids"> Total Dissolved Solids
+                <button class="info-button" data-description="Measures the combined content of all inorganic and organic substances in water">i</button>
+            </label><br>
+            <label title="Assesses the clarity of the water">
+                <input type="checkbox" class="component-checkbox" checked value="Turbidity"> Turbidity
+                <button class="info-button" data-description="Assesses the clarity of the water">i</button>
+            </label><br>
+            <label title="Measures the oxidation-reduction potential of the water">
+                <input type="checkbox" class="component-checkbox" checked value="Oxidation Reduction Potential"> Oxidation Reduction Potential
+                <button class="info-button" data-description="Measures the oxidation-reduction potential of the water">i</button>
+            </label><br>
+            <label title="Measures the concentration of phosphate in the water">
+                <input type="checkbox" class="component-checkbox" value="Phosphate Levels"> Phosphate Levels
+                <button class="info-button" data-description="Measures the concentration of phosphate in the water">i</button>
+            </label><br>
+            <label title="Measures the concentration of nitrate in the water">
+                <input type="checkbox" class="component-checkbox" value="Nitrate Levels"> Nitrate Levels
+                <button class="info-button" data-description="Measures the concentration of nitrate in the water">i</button>
+            </label><br>
+            <label title="Measures the concentration of nitrite in the water">
+                <input type="checkbox" class="component-checkbox" value="Nitrite Levels"> Nitrite Levels
+                <button class="info-button" data-description="Measures the concentration of nitrite in the water">i</button>
+            </label><br>
+            <label title="Measures the water's ability to conduct electrical current">
+                <input type="checkbox" class="component-checkbox" value="Electrical Conductivity"> Electrical Conductivity
+                <button class="info-button" data-description="Measures the water's ability to conduct electrical current">i</button>
+            </label>
+        </div>
+        <div id="sliders-container"></div>
+        <canvas id="radarChart"></canvas>
+        <div>
+            <p><strong>Overall Water Quality Score:</strong> <span id="overall-score">0</span>%</p>
+            <h3>Recommendations</h3>
+            <p id="recommendations"></p>
+        </div>
+        <div id="tooltip" class="tooltip"></div>
+        <div id="download-buttons" class="d-flex justify-content-between">
+            <button id="download-pdf-button"
+            class="btn btn-primary mt-3">Download PDF</button>
+            <button id="save-assessment-button" class="btn btn-primary mt-3">Save Assessment</button>
+        </div>
+        <div id="assessments-container" class="container mt-4">
+            <h3>Past Assessments</h3>
+            <button id="clear-all-assessments-button" class="btn btn-danger mb-3">Clear All Assessments</button>
+        </div>
+        <div class="disclaimer">
+            <h6>Disclaimer</h6>
+            <p>This Freshwater Quality Monitoring Tool is designed for educational and informational purposes only. The assessments and recommendations provided are based on the input data and should not be considered as professional environmental advice. Users are encouraged to consult with environmental experts for detailed analysis and decision-making. The developers are not liable for any actions taken based on the results generated by this tool.</p>
+        </div>
+    </div>
+    <div class="footer">
+        Developed by Jay Rowley 2025
+    </div>
+
+    <script>
+        const freshwaterComponents = [
+            {
+                name: "Temperature",
+                value: 3,
+                description: "Measures the temperature of the water",
+                criteria: [
+                    "Very Poor: >30°C or <5°C, unsuitable for most aquatic life.",
+                    "Poor: 25-30°C or 5-10°C, stressful for aquatic organisms.",
+                    "Fair: 20-25°C or 10-15°C, some stress on aquatic life.",
+                    "Good: 15-20°C, suitable for most aquatic organisms.",
+                    "Very Good: 10-15°C, optimal for many aquatic ecosystems.",
+                    "Excellent: 15-20°C, ideal for thriving aquatic life."
+                ]
+            },
+            {
+                name: "pH Level",
+                value: 3,
+                description: "Measures the acidity or alkalinity of the water",
+                criteria: [
+                    "Very Poor: <4 or >10, unsuitable for most aquatic life.",
+                    "Poor: 4-5 or 9-10, stressful for aquatic organisms.",
+                    "Fair: 5-6 or 8-9, some stress on aquatic life.",
+                    "Good: 6-7 or 7-8, suitable for most aquatic organisms.",
+                    "Very Good: 6.5-7.5, optimal for many aquatic ecosystems.",
+                    "Excellent: 7-8, ideal for thriving aquatic life."
+                ]
+            },
+            {
+                name: "Dissolved Oxygen",
+                value: 3,
+                description: "Evaluates the concentration of dissolved oxygen in the water",
+                criteria: [
+                    "Very Poor: <2 mg/L, unsuitable for most aquatic life.",
+                    "Poor: 2-4 mg/L, stressful for aquatic organisms.",
+                    "Fair: 4-6 mg/L, some stress on aquatic life.",
+                    "Good: 6-8 mg/L, suitable for most aquatic organisms.",
+                    "Very Good: 8-10 mg/L, supporting healthy aquatic ecosystems.",
+                    "Excellent: >10 mg/L, promoting thriving aquatic life."
+                ]
+            },
+            {
+                name: "Conductivity",
+                value: 3,
+                description: "Measures the water's ability to conduct electricity",
+                criteria: [
+                    "Very Poor: >2000 µS/cm, unsuitable for most aquatic life.",
+                    "Poor: 1500-2000 µS/cm, stressful for aquatic organisms.",
+                    "Fair: 1000-1500 µS/cm, some stress on aquatic life.",
+                    "Good: 500-1000 µS/cm, suitable for most aquatic organisms.",
+                    "Very Good: 200-500 µS/cm, optimal for many aquatic ecosystems.",
+                    "Excellent: <200 µS/cm, ideal for thriving aquatic life."
+                ]
+            },
+            {
+                name: "Total Dissolved Solids",
+                value: 3,
+                description: "Measures the combined content of all inorganic and organic substances in water",
+                criteria: [
+                    "Very Poor: >1200 mg/L, unsuitable for most aquatic life.",
+                    "Poor: 800-1200 mg/L, stressful for aquatic organisms.",
+                    "Fair: 500-800 mg/L, some stress on aquatic life.",
+                    "Good: 300-500 mg/L, suitable for most aquatic organisms.",
+                    "Very Good: 100-300 mg/L, optimal for many aquatic ecosystems.",
+                    "Excellent: <100 mg/L, ideal for thriving aquatic life."
+                ]
+            },
+            {
+                name: "Turbidity",
+                value: 3,
+                description: "Assesses the clarity of the water",
+                criteria: [
+                    "Very Poor: >100 NTU, water is extremely murky.",
+                    "Poor: 50-100 NTU, water is quite cloudy.",
+                    "Fair: 25-50 NTU, water is somewhat clear.",
+                    "Good: 10-25 NTU, water is mostly clear.",
+                    "Very Good: 5-10 NTU, water is very clear.",
+                    "Excellent: <5 NTU, crystal clear water, indicating excellent clarity."
+                ]
+            },
+            {
+                name: "Oxidation Reduction Potential",
+                value: 3,
+                description: "Measures the oxidation-reduction potential of the water",
+                criteria: [
+                    "Very Poor: <150 mV, unsuitable for most freshwater life.",
+                    "Poor: 150-200 mV, stressful for freshwater organisms.",
+                    "Fair: 200-300 mV, some stress on freshwater life.",
+                    "Good: 300-400 mV, suitable for most freshwater organisms.",
+                    "Very Good: 400-450 mV, optimal for many freshwater ecosystems.",
+                    "Excellent: >450 mV, ideal for thriving freshwater life."
+                ]
+            },
+            {
+                name: "Phosphate Levels",
+                value: 3,
+                description: "Measures the concentration of phosphate in the water",
+                criteria: [
+                    "Very Poor: >2.0 mg/L, unsuitable for most aquatic life.",
+                    "Poor: 1.0-2.0 mg/L, stressful for aquatic organisms.",
+                    "Fair: 0.5-1.0 mg/L, some stress on aquatic life.",
+                    "Good: 0.1-0.5 mg/L, suitable for most aquatic organisms.",
+                    "Very Good: 0.05-0.1 mg/L, optimal for many aquatic ecosystems.",
+                    "Excellent: <0.05 mg/L, ideal for thriving aquatic life."
+                ]
+            },
+            {
+                name: "Nitrate Levels",
+                value: 3,
+                description: "Measures the concentration of nitrate in the water",
+                criteria: [
+                    "Very Poor: >10 mg/L, unsuitable for most aquatic life.",
+                    "Poor: 5-10 mg/L, stressful for aquatic organisms.",
+                    "Fair: 2-5 mg/L, some stress on aquatic life.",
+                    "Good: 1-2 mg/L, suitable for most aquatic organisms.",
+                    "Very Good: 0.5-1 mg/L, optimal for many aquatic ecosystems.",
+                    "Excellent: <0.5 mg/L, ideal for thriving aquatic life."
+                ]
+            },
+            {
+                name: "Nitrite Levels",
+                value: 3,
+                description: "Measures the concentration of nitrite in the water",
+                criteria: [
+                    "Very Poor: >1 mg/L, unsuitable for most aquatic life.",
+                    "Poor: 0.5-1 mg/L, stressful for aquatic organisms.",
+                    "Fair: 0.2-0.5 mg/L, some stress on aquatic life.",
+                    "Good: 0.1-0.2 mg/L, suitable for most aquatic organisms.",
+                    "Very Good: 0.05-0.1 mg/L, optimal for many aquatic ecosystems.",
+                    "Excellent: <0.05 mg/L, ideal for thriving aquatic life."
+                ]
+            },
+            {
+                name: "Electrical Conductivity",
+                value: 3,
+                description: "Measures the water's ability to conduct electrical current",
+                criteria: [
+                    "Very Poor: >4000 µS/cm, unsuitable for most aquatic life.",
+                    "Poor: 2000-4000 µS/cm, stressful for aquatic organisms.",
+                    "Fair: 1000-2000 µS/cm, some stress on aquatic life.",
+                    "Good: 500-1000 µS/cm, suitable for most aquatic organisms.",
+                    "Very Good: 200-500 µS/cm, optimal for many aquatic ecosystems.",
+                    "Excellent: <200 µS/cm, ideal for thriving aquatic life."
+                ]
+            }
+        ];
+
+        const slidersContainer = document.getElementById('sliders-container');
+        const radarChartCanvas = document.getElementById('radarChart');
+        const overallScoreElement = document.getElementById('overall-score');
+        const recommendationsElement = document.getElementById('recommendations');
+        const componentCheckboxes = document.querySelectorAll('.component-checkbox');
+        const infoButtons = document.querySelectorAll('.info-button');
+
+        let activeComponents = freshwaterComponents.filter((_, i) => componentCheckboxes[i].checked);
+
+        function renderSliders() {
+            slidersContainer.innerHTML = '';
+            activeComponents.forEach((component, index) => {
+                const sliderWrapper = document.createElement('div');
+                sliderWrapper.className = 'slider-wrapper';
+
+                const label = document.createElement('label');
+                label.textContent = component.name;
+                sliderWrapper.appendChild(label);
+
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.min = 0;
+                slider.max = 5;
+                slider.value = component.value;
+                slider.dataset.index = index;
+                slider.className = 'slider';
+                slider.addEventListener('input', (e) => {
+                    const newValue = parseInt(e.target.value, 10);
+                    activeComponents[index].value = newValue;
+                    updateChart();
+                    const criteriaDisplay = sliderWrapper.querySelector('.criteria-display');
+                    criteriaDisplay.textContent = component.criteria[newValue];
+                });
+                sliderWrapper.appendChild(slider);
+
+                const criteriaDisplay = document.createElement('div');
+                criteriaDisplay.className = 'criteria-display';
+                criteriaDisplay.textContent = component.criteria[component.value];
+                criteriaDisplay.style.marginBottom = '1.5em';
+                sliderWrapper.appendChild(criteriaDisplay);
+
+                slidersContainer.appendChild(sliderWrapper);
+            });
+        }
+
+        function calculateOverallScore() {
+            const total = activeComponents.reduce((sum, comp) => sum + comp.value, 0);
+            const maxTotal = activeComponents.length * 5;
+            return Math.round((total / maxTotal) * 100);
+        }
+
+        function generateRecommendations() {
+            let recommendations = '';
+            activeComponents.forEach(component => {
+                if (component.value <= 3) {
+                    switch (component.name) {
+                        case "Temperature":
+                            recommendations += `<li>Improve ${component.name} by managing thermal pollution and shading water bodies.</li>`;
+                            break;
+                        case "pH Level":
+                            recommendations += `<li>Adjust ${component.name} by using appropriate treatments to balance acidity or alkalinity.</li>`;
+                            break;
+                        case "Oxidation Reduction Potential":
+                            recommendations += `<li>Improve ${component.name} by enhancing water aeration and reducing organic load.</li>`;
+                            break;
+                        case "Dissolved Oxygen":
+                            recommendations += `<li>Increase ${component.name} by aerating the water and reducing organic pollution.</li>`;
+                            break;
+                        case "Conductivity":
+                            recommendations += `<li>Manage ${component.name} by controlling sources of salinity and improving water treatment.</li>`;
+                            break;
+                        case "Total Dissolved Solids":
+                            recommendations += `<li>Reduce ${component.name} by improving filtration and reducing pollutant sources.</li>`;
+                            break;
+                        case "Turbidity":
+                            recommendations += `<li>Reduce ${component.name} by implementing sediment control measures.</li>`;
+                            break;
+                        case "Phosphate Levels":
+                            recommendations += `<li>Reduce ${component.name} by minimizing nutrient runoff and using phosphate-free detergents.</li>`;
+                            break;
+                        case "Nitrate Levels":
+                            recommendations += `<li>Control ${component.name} by managing agricultural runoff and enhancing water treatment.</li>`;
+                            break;
+                        case "Nitrite Levels":
+                            recommendations += `<li>Reduce ${component.name} by controlling fertilizer use and improving wastewater treatment.</li>`;
+                            break;
+                        case "Electrical Conductivity":
+                            recommendations += `<li>Improve ${component.name} by managing salinity and controlling pollutant discharges.</li>`;
+                            break;
+                        default:
+                            recommendations += `<li>Improve ${component.name} by focusing on relevant strategies.</li>`;
+                            break;
+                    }
+                }
+            });
+
+            recommendationsElement.innerHTML = recommendations ? `<ul>${recommendations}</ul>` : 'All parameters are performing well - Implement or continue with a monitoring program.';
+        }
+
+        function updateChart() {
+            radarChart.data.labels = activeComponents.map(comp => comp.name);
+            radarChart.data.datasets[0].data = activeComponents.map(comp => comp.value);
+            radarChart.update();
+
+            const overallScore = calculateOverallScore();
+            overallScoreElement.textContent = overallScore;
+            generateRecommendations();
+        }
+
+        function updateChartColors(isDarkMode) {
+            const chartColors = getChartColors(isDarkMode);
+            radarChart.options.scales.r.grid.color = chartColors.gridColor;
+            radarChart.options.scales.r.angleLines.color = chartColors.angleLineColor;
+            radarChart.options.scales.r.pointLabels.color = chartColors.pointLabelColor;
+            radarChart.data.datasets[0].borderColor = chartColors.borderColor;
+            radarChart.data.datasets[0].backgroundColor = chartColors.backgroundColor;
+            radarChart.update();
+        }
+
+        document.getElementById('dark-mode-toggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            updateChartColors(isDarkMode);
+        });
+
+        componentCheckboxes.forEach((checkbox, index) => {
+            checkbox.addEventListener('change', () => {
+                activeComponents = freshwaterComponents.filter((_, i) => componentCheckboxes[i].checked);
+                renderSliders();
+                updateChart();
+            });
+        });
+
+        infoButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const description = e.target.dataset.description;
+                alert(description);
+            });
+        });
+
+        function getChartColors(isDarkMode) {
+            return {
+                gridColor: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.1)',
+                angleLineColor: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.1)',
+                pointLabelColor: isDarkMode ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+                borderColor: isDarkMode ? 'rgba(30, 144, 255, 1)' : 'rgba(30, 144, 255, 1)', // Dodger blue
+                backgroundColor: isDarkMode ? 'rgba(30, 144, 255, 0.5)' : 'rgba(30, 144, 255, 0.2)' // Dodger blue
+            };
+        }
+
+        const radarChart = new Chart(radarChartCanvas, {
+            type: 'radar',
+            data: {
+                labels: activeComponents.map(comp => comp.name),
+                datasets: [{
+                    label: 'Water Quality',
+                    data: activeComponents.map(comp => comp.value),
+                    backgroundColor: 'rgba(30, 144, 255, 0.2)', // Dodger blue
+                    borderColor: 'rgba(30, 144, 255, 1)', // Dodger blue
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        min: 0,
+                        max: 5,
+                        ticks: {
+                            stepSize: 1
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        angleLines: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        pointLabels: {
+                            color: 'rgba(0, 0, 0, 1)'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const component = freshwaterComponents.find(comp => comp.name === context.label);
+                                return `${context.label}: ${context.raw} - ${component.description}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        updateChartColors(document.body.classList.contains('dark-mode'));
+        renderSliders();
+        updateChart();
+
+        document.getElementById('download-pdf-button').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const chartColors = getChartColors(isDarkMode);
+
+            const radarChartCanvas = document.getElementById('radarChart');
+            const recommendationsElement = document.getElementById('recommendations');
+
+            doc.setFontSize(18);
+            doc.text('Water Quality Report', 20, 20);
+
+            const currentDate = new Date();
+            const dateString = `Date: ${currentDate.toLocaleDateString()} Time: ${currentDate.toLocaleTimeString()}`;
+            doc.setFontSize(12);
+            doc.text(dateString, 20, 30);
+
+            if (radarChartCanvas) {
+                const chartImage = radarChartCanvas.toDataURL('image/png');
+                doc.addImage(chartImage, 'PNG', 20, 40, 160, 160);
+            } else {
+                doc.text('Radar chart is missing!', 20, 40);
+            }
+
+            doc.setFontSize(12);
+            doc.text('Recommendations:', 20, 200);
+
+            if (recommendationsElement) {
+                const recommendations = recommendationsElement.innerHTML;
+                const recommendationsList = recommendations.match(/<li>(.*?)<\/li>/g)?.map(item => item.replace(/<\/?li>/g, '')) || [];
+                const formattedRecommendations = recommendationsList.length > 0 ? recommendationsList.map(item => [`• ${item}`]) : [['All parameters are performing well - Implement or continue with a monitoring program.']];
+                doc.autoTable({
+                    startY: 210,
+                    body: formattedRecommendations,
+                    theme: 'plain',
+                    styles: { cellPadding: 1, fontSize: 12, overflow: 'linebreak', lineHeight: 1.2 },
+                    columnStyles: { 0: { cellWidth: 170 } }
+                });
+            } else {
+                doc.text('Recommendations not available!', 20, 210);
+            }
+
+            const pdfName = prompt("Enter a name for the PDF file:", "water_quality_report");
+            if (pdfName) {
+                doc.save(`${pdfName}.pdf`);
+            } else {
+                alert('PDF download canceled.');
+            }
+        });
+
+        function saveAssessment() {
+            const assessmentName = prompt("Enter a name for this assessment:", "New Assessment");
+            if (!assessmentName) return;
+
+            const assessment = {
+                name: assessmentName,
+                date: new Date().toISOString(),
+                components: activeComponents.map(comp => ({
+                    ...comp,
+                    criteriaDescription: comp.criteria[comp.value]
+                }))
+            };
+            let assessments = JSON.parse(localStorage.getItem('assessments')) || [];
+            assessments.push(assessment);
+            localStorage.setItem('assessments', JSON.stringify(assessments));
+            alert('Assessment saved successfully! Refresh the page to see saved assessments.');
+        }
+
+        function loadAssessments() {
+            return JSON.parse(localStorage.getItem('assessments')) || [];
+        }
+
+        function displayAssessments() {
+            const assessments = loadAssessments();
+            const assessmentsContainer = document.getElementById('assessments-container');
+            assessmentsContainer.innerHTML = '';
+
+            assessments.forEach((assessment, index) => {
+                const assessmentDiv = document.createElement('div');
+                assessmentDiv.className = 'assessment';
+
+                const date = new Date(assessment.date).toLocaleString();
+                const dateElement = document.createElement('p');
+                dateElement.textContent = `Date: ${date}`;
+                assessmentDiv.appendChild(dateElement);
+
+                const nameElement = document.createElement('p');
+                nameElement.textContent = `Name: ${assessment.name}`;
+                assessmentDiv.appendChild(nameElement);
+
+                const componentsList = document.createElement('ul');
+                assessment.components.forEach(component => {
+                    const componentItem = document.createElement('li');
+                    componentItem.textContent = `${component.name}: ${component.value} - ${component.criteriaDescription}`;
+                    componentsList.appendChild(componentItem);
+                });
+                assessmentDiv.appendChild(componentsList);
+
+                const buttonGroup = document.createElement('div');
+                buttonGroup.className = 'btn-group';
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.className = 'btn btn-danger btn-sm';
+                deleteButton.addEventListener('click', () => {
+                    if (confirm('Are you sure you want to delete this assessment?')) {
+                        deleteAssessment(index);
+                    }
+                });
+                buttonGroup.appendChild(deleteButton);
+
+                const exportButton = document.createElement('button');
+                exportButton.textContent = 'Export';
+                exportButton.className = 'btn btn-secondary btn-sm';
+                exportButton.addEventListener('click', () => {
+                    if (confirm('Are you sure you want to export this assessment?')) {
+                        exportSingleAssessment(index);
+                    }
+                });
+                buttonGroup.appendChild(exportButton);
+
+                assessmentDiv.appendChild(buttonGroup);
+                assessmentsContainer.appendChild(assessmentDiv);
+            });
+        }
+
+        function deleteAssessment(index) {
+            let assessments = loadAssessments();
+            assessments.splice(index, 1);
+            localStorage.setItem('assessments', JSON.stringify(assessments));
+            displayAssessments();
+        }
+
+        function clearAllAssessments() {
+            if (confirm('Are you sure you want to clear all assessments?')) {
+                localStorage.removeItem('assessments');
+                displayAssessments();
+            }
+        }
+
+        function exportSingleAssessment(index) {
+            const assessments = loadAssessments();
+            const assessment = assessments[index];
+            const csvContent = "data:text/csv;charset=utf-8," + 
+                "Name,Date,Component,Value,Description\n" +
+                assessment.components.map(comp => `${assessment.name},${new Date(assessment.date).toLocaleString()},${comp.name},${comp.value},${comp.criteriaDescription}`).join("\n") +
+                "\nRecommendations:\n" +
+                assessment.components.map(comp => `- ${comp.name}: ${comp.criteriaDescription}`).join("\n");
+
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", encodeURI(csvContent));
+            downloadAnchorNode.setAttribute("download", `${assessment.name}.csv`);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        document.getElementById('save-assessment-button').addEventListener('click', saveAssessment);
+        document.getElementById('clear-all-assessments-button').addEventListener('click', clearAllAssessments);
+        document.addEventListener('DOMContentLoaded', displayAssessments);
+
+        renderSliders();
+        updateChart();
+    </script>
+</body>
+</html>
+
