@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecosystem Health Assessment Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .dark-mode {
+            background-color: #333;
+            color: #f9f9f9;
+        }
+        .banner {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 10px;
+        }
+        .instructions {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #e0f7fa;
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+        }
+        .dark-mode .instructions {
+            background-color: #444;
+            border: 1px solid #fff;
+        }
+        .slider-group {
+            margin-bottom: 20px;
+        }
+        .slider-label {
+            margin-bottom: 5px;
+        }
+        .slider {
+            width: 100%; /* Adjust the width as needed */
+            margin: 10px 0;
+        }
+        .output {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .checkbox-group {
+            margin-bottom: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 14px;
+            color: #777;
+        }
+        #dark-mode-toggle {
+            margin: 20px auto;
+            display: block;
+            padding: 5px 20px;
+            font-size: 14px;
+        }
+        .info-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 2px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 10px;
+            width: 15px;
+            height: 15px;
+            line-height: 11px;
+            text-align: center;
+        }
+        .info-button:hover {
+            background-color: #45a049;
+        }
+        @media (max-width: 600px) {
+            .banner {
+                font-size: 18px;
+            }
+            .instructions, .checkbox-group, .slider-group {
+                font-size: 14px;
+            }
+            .slider-label, .output {
+                display: block;
+                margin-bottom: 10px;
+            }
+            canvas {
+                width: 100% !important;
+                height: auto !important;
+            }
+.slider-wrapper .criteria-display {
+    font-size: 0.9em;
+    margin-top: 0.5em;
+    margin-bottom: 1.5em; /* Ensure this is applied */
+    color: #666;
+}
+body.dark-mode .slider-wrapper .criteria-display {
+    color: #ccc;
+}
+
+        }
+/* Disclaimer Styles */
+.disclaimer {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #555;
+}
+.dark-mode .disclaimer {
+    background-color: #333;
+    border: 1px solid #555;
+    color: #ddd;
+}
+        }
+    </style>
+</head>
+<body>
+    <div class="banner">
+        <h1>Ecosystem Health Assessment Tool</h1>
+    </div>
+    <div class="container">
+        <button id="dark-mode-toggle">Toggle Dark Mode</button>
+        <div class="instructions">
+            <h2>Instructions</h2>
+            <ol>
+                <li>Select the components you want to include in the assessment using the checkboxes below.</li>
+                <li>Hover over each parameter for a brief description (click the information icon on mobile).</li>
+                <li>Adjust the sliders to reflect the current state of each component (0 is worst, 5 is best).</li>
+                <li>The overall health score will be calculated based on the selected components and their values.</li>
+                <li>A visual representation of the ecosystem's health is provided in the radar chart below. The more green, the better!</li>
+            </ol>
+        </div>
+        <div class="checkbox-group">
+            <label title="Measures the variety of species within the ecosystem">
+                <input type="checkbox" class="component-checkbox" checked value="Species Diversity"> Species Diversity
+                <button class="info-button" data-description="Measures the variety of species within the ecosystem">i</button>
+            </label><br>
+            <label title="Assesses the degree of habitat connectivity and fragmentation">
+                <input type="checkbox" class="component-checkbox" checked value="Ecosystem Connectivity"> Ecosystem Connectivity
+                <button class="info-button" data-description="Assesses the degree of habitat connectivity and fragmentation">i</button>
+            </label><br>
+            <label title="Evaluates the quantity and quality of water sources">
+                <input type="checkbox" class="component-checkbox" checked value="Water Availability"> Water Availability
+                <button class="info-button" data-description="Evaluates the quantity and quality of water sources">i</button>
+            </label><br>
+            <label title="Tracks the presence and health of key animal species">
+                <input type="checkbox" class="component-checkbox" checked value="Fauna Presence"> Fauna Presence
+                <button class="info-button" data-description="Tracks the presence and health of key animal species">i</button>
+            </label><br>
+            <label title="Monitors the impact and spread of non-native species">
+                <input type="checkbox" class="component-checkbox" checked value="Invasive Species"> Invasive Species
+                <button class="info-button" data-description="Monitors the impact and spread of non-native species">i</button>
+            </label><br>
+            <label title="Assesses soil health through indicators like pH, organic matter, and nutrient levels">
+                <input type="checkbox" class="component-checkbox" checked value="Soil Quality"> Soil Quality
+                <button class="info-button" data-description="Assesses soil health through indicators like pH, organic matter, and nutrient levels">i</button>
+            </label><br>
+            <label title="Measures the extent and quality of different habitat types">
+                <input type="checkbox" class="component-checkbox" value="Habitat Availability"> Habitat Availability
+                <button class="info-button" data-description="Measures the extent and quality of different habitat types">i</button>
+            </label><br>
+            <label title="Evaluates the effects of human activities on the ecosystem">
+                <input type="checkbox" class="component-checkbox" value="Human Impact"> Human Impact
+                <button class="info-button" data-description="Evaluates the effects of human activities on the ecosystem">i</button>
+            </label><br>
+            <label title="Assesses the extent and health of plant cover">
+                <input type="checkbox" class="component-checkbox" value="Vegetation Cover"> Vegetation Cover
+                <button class="info-button" data-description="Assesses the extent and health of plant cover">i</button>
+            </label>
+        </div>
+        <div id="sliders-container"></div>
+        <canvas id="radarChart"></canvas>
+        <div>
+            <p><strong>Overall Health Score:</strong> <span id="overall-score">0</span>%</p>
+            <h3>Recommendations</h3>
+            <p id="recommendations"></p>
+        </div>
+        <div id="tooltip" class="tooltip"></div>
+        <div id="download-buttons">
+            <button id="download-pdf-button">Download PDF</button>
+        </div>
+    </div>
+    <div class="footer">
+        Developed by Jay Rowley 2025
+    </div>
+<div class="disclaimer">
+    <h6>Disclaimer</h6>
+    <p>This Ecosystem Health Assessment Tool is designed for educational and informational purposes only. The assessments and recommendations provided are based on the input data and should not be considered as professional environmental advice. Users are encouraged to consult with environmental experts for detailed analysis and decision-making. The developers are not liable for any actions taken based on the results generated by this tool.</p>
+</div>
+    <script>
+const components = [
+    {
+        name: "Species Diversity",
+        value: 3,
+        description: "Measures the variety of species within the ecosystem",
+        criteria: [
+            "Very Poor: Very few species present, indicating a highly degraded ecosystem.",
+            "Poor: Low species diversity, with only a few species dominating.",
+            "Fair: Moderate species diversity, but some species are underrepresented.",
+            "Good: High species diversity, with a balanced representation of species.",
+            "Very Good: Very high species diversity, indicating a healthy and resilient ecosystem.",
+            "Excellent: Exceptional species diversity, with a wide variety of species thriving."
+        ]
+    },
+    {
+        name: "Ecosystem Connectivity",
+        value: 3,
+        description: "Assesses the degree of habitat connectivity and fragmentation",
+        criteria: [
+            "Very Poor: Highly fragmented habitats with little to no connectivity.",
+            "Poor: Fragmented habitats with limited connectivity.",
+            "Fair: Some connectivity between habitats, but still fragmented.",
+            "Good: Good connectivity between habitats, with some fragmentation.",
+            "Very Good: Very good connectivity, with minimal fragmentation.",
+            "Excellent: Excellent connectivity, with habitats well-connected and minimal fragmentation."
+        ]
+    },
+    {
+        name: "Water Availability",
+        value: 3,
+        description: "Evaluates the quantity and quality of water sources",
+        criteria: [
+            "Very Poor: Very limited water availability, with poor quality.",
+            "Poor: Limited water availability, with suboptimal quality.",
+            "Fair: Moderate water availability, with acceptable quality.",
+            "Good: Good water availability, with good quality.",
+            "Very Good: Very good water availability, with high quality.",
+            "Excellent: Excellent water availability, with exceptional quality."
+        ]
+    },
+    {
+        name: "Fauna Presence",
+        value: 3,
+        description: "Tracks the presence and health of key animal species",
+        criteria: [
+            "Very Poor: Very few key animal species present, indicating a highly degraded ecosystem.",
+            "Poor: Low presence of key animal species, with some species struggling.",
+            "Fair: Moderate presence of key animal species, but some species are underrepresented.",
+            "Good: Good presence of key animal species, with a balanced representation.",
+            "Very Good: Very good presence of key animal species, indicating a healthy ecosystem.",
+            "Excellent: Exceptional presence of key animal species, with a wide variety thriving."
+        ]
+    },
+    {
+        name: "Invasive Species",
+        value: 3,
+        description: "Monitors the impact and spread of non-native species",
+        criteria: [
+            "Very Poor: High impact and spread of invasive species, severely affecting the ecosystem.",
+            "Poor: Significant presence of invasive species, causing noticeable harm.",
+            "Fair: Moderate presence of invasive species, with some impact on the ecosystem.",
+            "Good: Low presence of invasive species, with minimal impact.",
+            "Very Good: Very low presence of invasive species, with negligible impact.",
+            "Excellent: No presence of invasive species, indicating a well-protected ecosystem."
+        ]
+    },
+    {
+        name: "Soil Quality",
+        value: 3,
+        description: "Assesses soil health through indicators like pH, organic matter, and nutrient levels",
+        criteria: [
+            "Very Poor: Very poor soil health, with low pH, organic matter, and nutrient levels.",
+            "Poor: Poor soil health, with suboptimal pH, organic matter, and nutrient levels.",
+            "Fair: Moderate soil health, with acceptable pH, organic matter, and nutrient levels.",
+            "Good: Good soil health, with balanced pH, organic matter, and nutrient levels.",
+            "Very Good: Very good soil health, with high pH, organic matter, and nutrient levels.",
+            "Excellent: Exceptional soil health, with optimal pH, organic matter, and nutrient levels."
+        ]
+    },
+    {
+        name: "Habitat Availability",
+        value: 3,
+        description: "Measures the extent and quality of different habitat types",
+        criteria: [
+            "Very Poor: Very limited habitat availability, with poor quality.",
+            "Poor: Limited habitat availability, with suboptimal quality.",
+            "Fair: Moderate habitat availability, with acceptable quality.",
+            "Good: Good habitat availability, with good quality.",
+            "Very Good: Very good habitat availability, with high quality.",
+            "Excellent: Exceptional habitat availability, with optimal quality."
+        ]
+    },
+    {
+        name: "Human Impact",
+        value: 3,
+        description: "Evaluates the effects of human activities on the ecosystem",
+        criteria: [
+            "Very Poor: High negative impact from human activities, severely affecting the ecosystem.",
+            "Poor: Significant negative impact from human activities, causing noticeable harm.",
+            "Fair: Moderate negative impact from human activities, with some harm.",
+            "Good: Low negative impact from human activities, with minimal harm.",
+            "Very Good: Very low negative impact from human activities, with negligible harm.",
+            "Excellent: No negative impact from human activities, indicating a well-protected ecosystem."
+        ]
+    },
+    {
+        name: "Vegetation Cover",
+        value: 3,
+        description: "Assesses the extent and health of plant cover",
+        criteria: [
+            "Very Poor: Very limited vegetation cover, with poor health.",
+            "Poor: Limited vegetation cover, with suboptimal health.",
+            "Fair: Moderate vegetation cover, with acceptable health.",
+            "Good: Good vegetation cover, with good health.",
+            "Very Good: Very good vegetation cover, with high health.",
+            "Excellent: Exceptional vegetation cover, with optimal health."
+        ]
+    }
+];
+
+        const slidersContainer = document.getElementById('sliders-container');
+        const radarChartCanvas = document.getElementById('radarChart');
+        const overallScoreElement = document.getElementById('overall-score');
+        const recommendationsElement = document.getElementById('recommendations');
+        const componentCheckboxes = document.querySelectorAll('.component-checkbox');
+        const infoButtons = document.querySelectorAll('.info-button');
+
+        let activeComponents = components.slice(0, 6);
+
+function renderSliders() {
+    slidersContainer.innerHTML = '';
+    activeComponents.forEach((component, index) => {
+        const sliderWrapper = document.createElement('div');
+        sliderWrapper.className = 'slider-wrapper';
+
+        const label = document.createElement('label');
+        label.textContent = component.name;
+        sliderWrapper.appendChild(label);
+
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = 0;
+        slider.max = 5;
+        slider.value = component.value;
+        slider.dataset.index = index;
+        slider.className = 'slider';
+        slider.addEventListener('input', (e) => {
+            const newValue = parseInt(e.target.value, 10);
+            activeComponents[index].value = newValue;
+            updateChart();
+            criteriaDisplay.textContent = component.criteria[newValue];
+        });
+        sliderWrapper.appendChild(slider);
+
+        const criteriaDisplay = document.createElement('div');
+        criteriaDisplay.className = 'criteria-display';
+        criteriaDisplay.textContent = component.criteria[component.value];
+        criteriaDisplay.style.marginBottom = '1.5em'; // Add this line
+        sliderWrapper.appendChild(criteriaDisplay);
+
+        slidersContainer.appendChild(sliderWrapper);
+    });
+}
+
+function calculateOverallScore() {
+    const total = activeComponents.reduce((sum, comp) => sum + comp.value, 0);
+    const maxTotal = activeComponents.length * 5; // Adjust this to 5
+    return Math.round((total / maxTotal) * 100);
+}
+
+function generateRecommendations() {
+    let recommendations = '';
+    activeComponents.forEach(component => {
+        if (component.value <= 3) {
+            switch (component.name) {
+                case "Species Diversity":
+                    recommendations += `<li>Improve ${component.name} by increasing habitat variety and protecting endangered species.</li>`;
+                    break;
+                case "Ecosystem Connectivity":
+                    recommendations += `<li>Enhance ${component.name} by creating wildlife corridors and reducing habitat fragmentation.</li>`;
+                    break;
+                case "Water Availability":
+                    recommendations += `<li>Increase ${component.name} by implementing water conservation practices and protecting water sources.</li>`;
+                    break;
+                case "Fauna Presence":
+                    recommendations += `<li>Boost ${component.name} by protecting natural habitats and reducing human-wildlife conflicts.</li>`;
+                    break;
+                case "Invasive Species":
+                    recommendations += `<li>Control ${component.name} by managing and monitoring invasive species populations.</li>`;
+                    break;
+                case "Soil Quality":
+                    recommendations += `<li>Enhance ${component.name} by using sustainable land management practices and reducing soil erosion.</li>`;
+                    break;
+                case "Habitat Availability":
+                    recommendations += `<li>Increase ${component.name} by protecting existing habitats and restoring degraded areas.</li>`;
+                    break;
+                case "Human Impact":
+                    recommendations += `<li>Mitigate ${component.name} by promoting sustainable land use and reducing pollution.</li>`;
+                    break;
+                case "Vegetation Cover":
+                    recommendations += `<li>Enhance ${component.name} by planting native vegetation and preventing land clearing.</li>`;
+                    break;
+                default:
+                    recommendations += `<li>Improve ${component.name} by focusing on relevant strategies.</li>`;
+                    break;
+            }
+        }
+    });
+    recommendationsElement.innerHTML = recommendations ? `<ul>${recommendations}</ul>` : 'All components are performing well - Implement monitoring program.';
+}
+        function getChartColors(isDarkMode) {
+            return {
+                gridColor: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.1)',
+                angleLineColor: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.1)',
+                pointLabelColor: isDarkMode ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+                borderColor: isDarkMode ? 'rgba(255, 255, 255, 1)' : 'rgba(75, 192, 192, 1)',
+                backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(75, 192, 192, 0.2)'
+            };
+        }
+
+        const radarChart = new Chart(radarChartCanvas, {
+            type: 'radar',
+            data: {
+                labels: activeComponents.map(comp => comp.name),
+                datasets: [{
+                    label: 'Ecosystem Health',
+                    data: activeComponents.map(comp => comp.value),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+        scales: {
+            r: {
+                min: 0,
+                max: 5,
+                ticks: {
+                    stepSize: 1 // Add this line to display only whole numbers
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.1)'
+                },
+                angleLines: {
+                    color: 'rgba(0, 0, 0, 0.1)'
+                },
+                pointLabels: {
+                    color: 'rgba(0, 0, 0, 1)'
+                }
+            }
+        },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const component = components.find(comp => comp.name === context.label);
+                                return `${context.label}: ${context.raw} - ${component.description}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        function updateChart() {
+            radarChart.data.labels = activeComponents.map(comp => comp.name);
+            radarChart.data.datasets[0].data = activeComponents.map(comp => comp.value);
+            radarChart.update();
+
+            const overallScore = calculateOverallScore();
+            overallScoreElement.textContent = overallScore;
+            generateRecommendations();
+        }
+
+        function updateChartColors(isDarkMode) {
+            const chartColors = getChartColors(isDarkMode);
+            radarChart.options.scales.r.grid.color = chartColors.gridColor;
+            radarChart.options.scales.r.angleLines.color = chartColors.angleLineColor;
+            radarChart.options.scales.r.pointLabels.color = chartColors.pointLabelColor;
+            radarChart.data.datasets[0].borderColor = chartColors.borderColor;
+            radarChart.data.datasets[0].backgroundColor = chartColors.backgroundColor;
+            radarChart.update();
+        }
+
+        document.getElementById('dark-mode-toggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            updateChartColors(isDarkMode);
+        });
+
+        componentCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                activeComponents = components.filter((_, i) => componentCheckboxes[i].checked);
+                renderSliders();
+                updateChart();
+            });
+        });
+
+        infoButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const description = e.target.dataset.description;
+                alert(description);
+            });
+        });
+
+        renderSliders();
+        updateChart();
+
+document.getElementById('download-pdf-button').addEventListener('click', () => {
+    const { jsPDF } = window.jspdf;
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    const chartColors = getChartColors(isDarkMode);
+
+    const radarChartCanvas = document.getElementById('radarChart');
+    const recommendationsElement = document.getElementById('recommendations');
+
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Ecosystem Health Report', 20, 20);
+
+    const currentDate = new Date();
+    const dateString = `Date: ${currentDate.toLocaleDateString()} Time: ${currentDate.toLocaleTimeString()}`;
+    doc.setFontSize(12);
+    doc.text(dateString, 20, 30);
+
+    if (radarChartCanvas) {
+        const chartImage = radarChartCanvas.toDataURL('image/png');
+        doc.addImage(chartImage, 'PNG', 20, 40, 160, 160);
+    } else {
+        doc.text('Radar chart is missing!', 20, 40);
+    }
+
+    doc.setFontSize(12);
+    doc.text('Recommendations:', 20, 200);
+
+    if (recommendationsElement) {
+        const recommendations = recommendationsElement.innerHTML;
+        const recommendationsList = recommendations.match(/<li>(.*?)<\/li>/g)?.map(item => item.replace(/<\/?li>/g, '')) || [];
+        const formattedRecommendations = recommendationsList.length > 0 ? recommendationsList.map(item => [`• ${item}`]) : [['All components are performing well - Implement or continue with a monitoring program.']];
+        doc.autoTable({
+            startY: 210,
+            body: formattedRecommendations,
+            theme: 'plain',
+            styles: { cellPadding: 1, fontSize: 12, overflow: 'linebreak', lineHeight: 1.2 },
+            columnStyles: { 0: { cellWidth: 170 } }
+        });
+    } else {
+        doc.text('Recommendations not available!', 20, 210);
+    }
+
+    // Prompt the user to enter a name for the PDF
+    const pdfName = prompt("Enter a name for the PDF file:", "ecosystem_health_report");
+    if (pdfName) {
+        doc.save(`${pdfName}.pdf`);
+    } else {
+        doc.save('ecosystem_health_report.pdf');
+    }
+});
+    </script>
+</body>
+</html>
