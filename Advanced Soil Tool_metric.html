@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soil Health Assessment Tool</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 20px;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .dark-mode {
+            background-color: #181818;
+            color: #f0f2f5;
+        }
+        .banner {
+            background-color: #8B4513; /* Copper */
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            animation: fadeInDown 1s;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .instructions {
+            background-color: #F5DEB3; /* Wheat */
+            border: 1px solid #8B4513; /* Copper */
+            border-radius: 8px;
+            animation: fadeIn 1s;
+            margin-bottom: 20px;
+        }
+        .dark-mode .instructions {
+            background-color: #444;
+            border: 1px solid #fff;
+        }
+        .slider-group {
+            margin-bottom: 20px;
+        }
+        .slider-label {
+            margin-bottom: 5px;
+        }
+        .slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        .output {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .checkbox-group {
+            margin-bottom: 20px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #8B4513; /* Copper */
+        }
+        #dark-mode-toggle {
+            margin: 20px auto;
+            display: block;
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            background-color: #8B4513; /* Copper */
+            color: white;
+            cursor: pointer;
+            animation: fadeInUp 1s;
+        }
+        #dark-mode-toggle:hover {
+            background-color: #A0522D; /* Sienna */
+        }
+        .info-button {
+            background-color: #8B4513; /* Copper */
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 5px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 12px;
+            width: 20px;
+            height: 20px;
+            line-height: 15px;
+            text-align: center;
+        }
+        .info-button:hover {
+            background-color: #A0522D; /* Sienna */
+        }
+        @media (max-width: 600px) {
+            .banner {
+                font-size: 18px;
+            }
+            .instructions, .checkbox-group, .slider-group {
+                font-size: 14px;
+            }
+            .slider-label, .output {
+                display: block;
+                margin-bottom: 10px;
+            }
+            canvas {
+                width: 100% !important;
+                height: auto !important;
+            }
+        }
+        .disclaimer {
+            background-color: #F5DEB3; /* Wheat */
+            border: 1px solid #8B4513; /* Copper */
+            color: #555;
+        }
+        .dark-mode .disclaimer {
+            background-color: #333;
+            border: 1px solid #555;
+            color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="banner animate__animated animate__fadeInDown">
+        <h1>Soil Health Assessment Tool</h1>
+    </div>
+    <div class="container">
+        <button id="dark-mode-toggle" class="animate__animated animate__fadeInUp">Toggle Dark Mode</button>
+        <div class="instructions animate__animated animate__fadeIn">
+            <h2>Instructions</h2>
+            <ol>
+                <li>Select the components you want to include in the assessment using the checkboxes below.</li>
+                <li>Hover over each parameter for a brief description (click the information icon on mobile).</li>
+                <li>Adjust the sliders to reflect the current state of each component (0 is worst, 5 is best).</li>
+                <li>The overall health score will be calculated based on the selected components and their values.</li>
+                <li>A visual representation of the soil's health is provided in the radar chart below.</li>
+                <li>Note: Refresh the page to see saved assessments.</li>
+            </ol>
+        </div>
+        <div class="checkbox-group">
+            <label title="Evaluates soil pH levels, which influence nutrient availability and biological activity">
+                <input type="checkbox" class="component-checkbox" checked value="Soil pH"> Soil pH
+                <button class="info-button" data-description="Evaluates soil pH levels, which influence nutrient availability and biological activity">i</button>
+            </label><br>
+            <label title="Assesses the amount of organic matter in the soil, which supports soil structure and fertility">
+                <input type="checkbox" class="component-checkbox" checked value="Organic Matter"> Organic Matter
+                <button class="info-button" data-description="Assesses the amount of organic matter in the soil, which supports soil structure and fertility">i</button>
+            </label><br>
+            <label title="Measures the levels of essential nutrients like nitrogen, phosphorus, and potassium in the soil">
+                <input type="checkbox" class="component-checkbox" checked value="Nutrient Levels"> Nutrient Levels
+                <button class="info-button" data-description="Measures the levels of essential nutrients like nitrogen, phosphorus, and potassium in the soil">i</button>
+            </label><br>
+            <label title="Tracks soil compaction, which affects root growth and water infiltration">
+                <input type="checkbox" class="component-checkbox" checked value="Soil Compaction"> Soil Compaction
+                <button class="info-button" data-description="Tracks soil compaction, which affects root growth and water infiltration">i</button>
+            </label><br>
+            <label title="Evaluates soil moisture content, which is critical for plant growth and microbial activity">
+                <input type="checkbox" class="component-checkbox" checked value="Soil Moisture"> Soil Moisture
+                <button class="info-button" data-description="Evaluates soil moisture content, which is critical for plant growth and microbial activity">i</button>
+            </label><br>
+            <label title="Assesses the presence of beneficial soil organisms like earthworms and microbes">
+                <input type="checkbox" class="component-checkbox" checked value="Soil Biota"> Soil Biota
+                <button class="info-button" data-description="Assesses the presence of beneficial soil organisms like earthworms and microbes">i</button>
+            </label><br>
+            <label title="Measures soil erosion levels, which can impact soil fertility and structure">
+                <input type="checkbox" class="component-checkbox" value="Soil Erosion"> Soil Erosion
+                <button class="info-button" data-description="Measures soil erosion levels, which can impact soil fertility and structure">i</button>
+            </label><br>
+            <label title="Evaluates soil texture, which influences water retention, drainage, and root growth">
+                <input type="checkbox" class="component-checkbox" value="Soil Texture"> Soil Texture
+                <button class="info-button" data-description="Evaluates soil texture, which influences water retention, drainage, and root growth">i</button>
+            </label>
+        </div>
+        <div id="sliders-container"></div>
+        <canvas id="radarChart"></canvas>
+        <div>
+            <p><strong>Overall Health Score:</strong> <span id="overall-score">0</span>%</p>
+            <h3>Recommendations</h3>
+            <p id="recommendations"></p>
+        </div>
+        <div id="tooltip" class="tooltip"></div>
+        <div id="download-buttons" class="d-flex justify-content-between">
+            <button id="download-pdf-button" class="btn btn-primary mt-3">Download PDF</button>
+            <button id="save-assessment-button" class="btn btn-primary mt-3">Save Assessment</button>
+        </div>
+        <div id="assessments-container" class="container mt-4">
+            <h3>Past Assessments</h3>
+            <button id="clear-all-assessments-button" class="btn btn-danger mb-3">Clear All Assessments</button>
+        </div>
+    </div>
+    <div class="disclaimer">
+        <h6>Disclaimer</h6>
+        <p>This Soil Health Assessment Tool is designed for educational and informational purposes only. The assessments and recommendations provided are based on the input data and should not be considered as professional agricultural advice. Users are encouraged to consult with agricultural experts for detailed analysis and decision-making. The developers are not liable for any actions taken based on the results generated by this tool.</p>
+    </div>
+    <div class="footer">
+        Developed by Jay Rowley 2025
+    </div>
+    <script>
+const components = [
+    {
+        name: "Soil pH",
+        value: 3,
+        description: "Evaluates soil pH levels, which influence nutrient availability and biological activity",
+        criteria: [
+            "Very Poor: pH < 4.5 or > 9.0",
+            "Poor: pH 4.5 - 5.5 or 8.0 - 9.0",
+            "Fair: pH 5.5 - 6.0 or 7.5 - 8.0",
+            "Good: pH 6.0 - 6.5 or 7.0 - 7.5",
+            "Very Good: pH 6.5 - 7.0",
+            "Excellent: pH 6.8 - 7.2"
+        ]
+    },
+    {
+        name: "Organic Matter",
+        value: 3,
+        description: "Assesses the amount of organic matter in the soil, which supports soil structure and fertility",
+        criteria: [
+            "Very Poor: < 1% organic matter",
+            "Poor: 1% - 2%",
+            "Fair: 2% - 3%",
+            "Good: 3% - 4%",
+            "Very Good: 4% - 5%",
+            "Excellent: > 5%"
+        ]
+    },
+    {
+        name: "Nutrient Levels",
+        value: 3,
+        description: "Measures the levels of essential nutrients like nitrogen, phosphorus, and potassium in the soil",
+        criteria: [
+            "Very Poor: N < 10 ppm, P < 5 ppm, K < 50 ppm",
+            "Poor: N 10 - 20 ppm, P 5 - 10 ppm, K 50 - 100 ppm",
+            "Fair: N 20 - 30 ppm, P 10 - 20 ppm, K 100 - 150 ppm",
+            "Good: N 30 - 40 ppm, P 20 - 30 ppm, K 150 - 200 ppm",
+            "Very Good: N 40 - 50 ppm, P 30 - 40 ppm, K 200 - 250 ppm",
+            "Excellent: N > 50 ppm, P > 40 ppm, K > 250 ppm"
+        ]
+    },
+    {
+        name: "Soil Compaction",
+        value: 3,
+        description: "Tracks soil compaction, which affects root growth and water infiltration",
+        criteria: [
+            "Very Poor: Penetration resistance > 3000 kPa",
+            "Poor: Penetration resistance 2500 - 3000 kPa",
+            "Fair: Penetration resistance 2000 - 2500 kPa",
+            "Good: Penetration resistance 1500 - 2000 kPa",
+            "Very Good: Penetration resistance 1000 - 1500 kPa",
+            "Excellent: Penetration resistance < 1000 kPa"
+        ]
+    },
+    {
+        name: "Soil Moisture",
+        value: 3,
+        description: "Evaluates soil moisture content, which is critical for plant growth and microbial activity",
+        criteria: [
+            "Very Poor: < 10% or > 40% volumetric water content",
+            "Poor: 10% - 15% or 35% - 40%",
+            "Fair: 15% - 20% or 30% - 35%",
+            "Good: 20% - 25% or 25% - 30%",
+            "Very Good: 25% - 30%",
+            "Excellent: 25% - 27%"
+        ]
+    },
+    {
+        name: "Soil Biota",
+        value: 3,
+        description: "Assesses the presence of beneficial soil organisms like earthworms and microbes",
+        criteria: [
+            "Very Poor: < 176 earthworms per cubic meter",
+            "Poor: 176 - 353 earthworms per cubic meter",
+            "Fair: 353 - 529 earthworms per cubic meter",
+            "Good: 529 - 706 earthworms per cubic meter",
+            "Very Good: 706 - 883 earthworms per cubic meter",
+            "Excellent: > 883 earthworms per cubic meter"
+        ]
+    },
+    {
+        name: "Soil Erosion",
+        value: 3,
+        description: "Measures soil erosion levels, which can impact soil fertility and structure",
+        criteria: [
+            "Very Poor: > 22.4 metric tons/hectare/year",
+            "Poor: 17.9 - 22.4 metric tons/hectare/year",
+            "Fair: 13.4 - 17.9 metric tons/hectare/year",
+            "Good: 8.9 - 13.4 metric tons/hectare/year",
+            "Very Good: 4.5 - 8.9 metric tons/hectare/year",
+            "Excellent: < 4.5 metric tons/hectare/year"
+        ]
+    },
+    {
+        name: "Soil Texture",
+        value: 3,
+        description: "Evaluates soil texture, which influences water retention, drainage, and root growth",
+        criteria: [
+            "Very Poor: > 60% clay or sand",
+            "Poor: 50% - 60% clay or sand",
+            "Fair: 40% - 50% clay or sand",
+            "Good: 30% - 40% clay or sand",
+            "Very Good: 20% - 30% clay or sand",
+            "Excellent: 10% - 20% clay or sand"
+        ]
+    }
+];
+const slidersContainer = document.getElementById('sliders-container');
+const radarChartCanvas = document.getElementById('radarChart');
+const overallScoreElement = document.getElementById('overall-score');
+const recommendationsElement = document.getElementById('recommendations');
+const componentCheckboxes = document.querySelectorAll('.component-checkbox');
+const infoButtons = document.querySelectorAll('.info-button');
+
+let activeComponents = components.slice(0, 6);
+
+function renderSliders() {
+    slidersContainer.innerHTML = '';
+    activeComponents.forEach((component, index) => {
+        const sliderWrapper = document.createElement('div');
+        sliderWrapper.className = 'slider-wrapper animate__animated animate__fadeInUp';
+
+        const label = document.createElement('label');
+        label.textContent = component.name;
+        sliderWrapper.appendChild(label);
+
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = 0;
+        slider.max = 5;
+        slider.value = component.value;
+        slider.dataset.index = index;
+        slider.className = 'slider';
+        slider.addEventListener('input', (e) => {
+            const newValue = parseInt(e.target.value, 10);
+            activeComponents[index].value = newValue;
+            updateChart();
+            criteriaDisplay.textContent = component.criteria[newValue];
+        });
+        sliderWrapper.appendChild(slider);
+
+        const criteriaDisplay = document.createElement('div');
+        criteriaDisplay.className = 'criteria-display';
+        criteriaDisplay.textContent = component.criteria[component.value];
+        criteriaDisplay.style.marginBottom = '1.5em';
+        sliderWrapper.appendChild(criteriaDisplay);
+
+        slidersContainer.appendChild(sliderWrapper);
+    });
+}
+
+function calculateOverallScore() {
+    const total = activeComponents.reduce((sum, comp) => sum + comp.value, 0);
+    const maxTotal = activeComponents.length * 5;
+    return Math.round((total / maxTotal) * 100);
+}
+
+async function getAIRecommendations(components) {
+    try {
+        const response = await axios.post('https://api.example.com/get-recommendations', { components });
+        return response.data.recommendations;
+    } catch (error) {
+        console.error('Error fetching AI recommendations:', error);
+        return [];
+    }
+}
+
+async function generateRecommendations() {
+    let recommendations = '';
+    const aiRecommendations = await getAIRecommendations(activeComponents);
+
+    activeComponents.forEach(component => {
+        if (component.value <= 3) {
+            const aiRecommendation = aiRecommendations.find(rec => rec.component === component.name);
+            if (aiRecommendation) {
+                recommendations += `<li>${aiRecommendation.recommendation}</li>`;
+            } else {
+                switch (component.name) {
+                    case "Soil pH":
+                        recommendations += `<li>Adjust ${component.name} by adding lime to raise pH or sulfur to lower pH.</li>`;
+                        break;
+                    case "Organic Matter":
+                        recommendations += `<li>Increase ${component.name} by adding compost, cover crops, or organic mulches.</li>`;
+                        break;
+                    case "Nutrient Levels":
+                        recommendations += `<li>Enhance ${component.name} by applying balanced fertilizers and organic amendments.</li>`;
+                        break;
+                    case "Soil Compaction":
+                        recommendations += `<li>Reduce ${component.name} by avoiding heavy machinery use and implementing soil aeration techniques.</li>`;
+                        break;
+                    case "Soil Moisture":
+                        recommendations += `<li>Manage ${component.name} by improving irrigation practices and using mulch to retain moisture.</li>`;
+                        break;
+                    case "Soil Biota":
+                        recommendations += `<li>Increase ${component.name} by minimizing pesticide use and incorporating organic matter.</li>`;
+                        break;
+                    case "Soil Erosion":
+                        recommendations += `<li>Control ${component.name} by planting cover crops and implementing erosion control measures.</li>`;
+                        break;
+                    case "Soil Texture":
+                        recommendations += `<li>Improve ${component.name} by adding organic matter and practicing crop rotation.</li>`;
+                        break;
+                    default:
+                        recommendations += `<li>Improve ${component.name} by focusing on relevant strategies.</li>`;
+                        break;
+                }
+            }
+        }
+    });
+
+    recommendationsElement.innerHTML = recommendations ? `<ul>${recommendations}</ul>` : 'All components are performing well - Implement monitoring program.';
+}
+
+function getChartColors(isDarkMode) {
+    return {
+        gridColor: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.1)',
+        angleLineColor: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.1)',
+        pointLabelColor: isDarkMode ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+        borderColor: isDarkMode ? 'rgba(255, 255, 255, 1)' : 'rgba(75, 192, 192, 1)',
+        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.5)' : 'rgba(75, 192, 192, 0.2)'
+    };
+}
+
+const radarChart = new Chart(radarChartCanvas, {
+    type: 'radar',
+    data: {
+        labels: activeComponents.map(comp => comp.name),
+        datasets: [{
+            label: 'Soil Health',
+            data: activeComponents.map(comp => comp.value),
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 2
+        }]
+    },
+    options: {
+        scales: {
+            r: {
+                min: 0,
+                max: 5,
+                ticks: {
+                    stepSize: 1
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.1)'
+                },
+                angleLines: {
+                    color: 'rgba(0, 0, 0, 0.1)'
+                },
+                pointLabels: {
+                    color: 'rgba(0, 0, 0, 1)'
+                }
+            }
+        },
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const component = components.find(comp => comp.name === context.label);
+                        return `${context.label}: ${context.raw} - ${component.description}`;
+                    }
+                }
+            }
+        }
+    }
+});
+
+function updateChart() {
+    radarChart.data.labels = activeComponents.map(comp => comp.name);
+    radarChart.data.datasets[0].data = activeComponents.map(comp => comp.value);
+    radarChart.update();
+
+    const overallScore = calculateOverallScore();
+    overallScoreElement.textContent = overallScore;
+    generateRecommendations();
+}
+
+function updateChartColors(isDarkMode) {
+    const chartColors = getChartColors(isDarkMode);
+    radarChart.options.scales.r.grid.color = chartColors.gridColor;
+    radarChart.options.scales.r.angleLines.color = chartColors.angleLineColor;
+    radarChart.options.scales.r.pointLabels.color = chartColors.pointLabelColor;
+    radarChart.data.datasets[0].borderColor = chartColors.borderColor;
+    radarChart.data.datasets[0].backgroundColor = chartColors.backgroundColor;
+    radarChart.update();
+}
+
+document.getElementById('dark-mode-toggle').addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    updateChartColors(isDarkMode);
+});
+
+componentCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+        activeComponents = components.filter((_, i) => componentCheckboxes[i].checked);
+        renderSliders();
+        updateChart();
+    });
+});
+
+infoButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+        const description = e.target.dataset.description;
+        alert(description);
+    });
+});
+
+renderSliders();
+updateChart();
+
+document.getElementById('download-pdf-button').addEventListener('click', () => {
+    const { jsPDF } = window.jspdf;
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    const chartColors = getChartColors(isDarkMode);
+
+    const radarChartCanvas = document.getElementById('radarChart');
+    const recommendationsElement = document.getElementById('recommendations');
+
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Soil Health Report', 20, 20);
+
+    const currentDate = new Date();
+    const dateString = `Date: ${currentDate.toLocaleDateString()} Time: ${currentDate.toLocaleTimeString()}`;
+    doc.setFontSize(12);
+    doc.text(dateString, 20, 30);
+
+    if (radarChartCanvas) {
+        const chartImage = radarChartCanvas.toDataURL('image/png');
+        doc.addImage(chartImage, 'PNG', 20, 40, 160, 160);
+    } else {
+        doc.text('Radar chart is missing!', 20, 40);
+    }
+
+    doc.setFontSize(12);
+    doc.text('Recommendations:', 20, 200);
+
+    if (recommendationsElement) {
+        const recommendations = recommendationsElement.innerHTML;
+        const recommendationsList = recommendations.match(/<li>(.*?)<\/li>/g)?.map(item => item.replace(/<\/?li>/g, '')) || [];
+        const formattedRecommendations = recommendationsList.length > 0 ? recommendationsList.map(item => [`• ${item}`]) : [['All components are performing well - Implement or continue with a monitoring program.']];
+        doc.autoTable({
+            startY: 210,
+            body: formattedRecommendations,
+            theme: 'plain',
+            styles: { cellPadding: 1, fontSize: 12, overflow: 'linebreak', lineHeight: 1.2 },
+            columnStyles: { 0: { cellWidth: 170 } }
+        });
+    } else {
+        doc.text('Recommendations not available!', 20, 210);
+    }
+
+    const pdfName = prompt("Enter a name for the PDF file:", "soil_health_report");
+    if (pdfName) {
+        doc.save(`${pdfName}.pdf`);
+    }
+});
+
+function saveAssessment() {
+    const assessmentName = prompt("Enter a name for this assessment:", "New Assessment");
+    if (!assessmentName) return;
+
+    const assessment = {
+        name: assessmentName,
+        date: new Date().toISOString(),
+        components: activeComponents.map(comp => ({
+            name: comp.name,
+            value: comp.value,
+            description: comp.criteria[comp.value]
+        })),
+        recommendations: recommendationsElement.innerHTML
+    };
+
+    let assessments = JSON.parse(localStorage.getItem('assessments')) || [];
+    assessments.push(assessment);
+    localStorage.setItem('assessments', JSON.stringify(assessments));
+    alert('Assessment saved successfully! Refresh the page to see saved assessments.');
+}
+
+function loadAssessments() {
+    const assessments = JSON.parse(localStorage.getItem('assessments')) || [];
+    return assessments;
+}
+
+function displayAssessments() {
+    const assessments = loadAssessments();
+    const assessmentsContainer = document.getElementById('assessments-container');
+    assessmentsContainer.innerHTML = '';
+
+    assessments.forEach((assessment, index) => {
+        const assessmentDiv = document.createElement('div');
+        assessmentDiv.className = 'assessment';
+
+        const date = new Date(assessment.date).toLocaleString();
+        const dateElement = document.createElement('p');
+        dateElement.textContent = `Date: ${date}`;
+        assessmentDiv.appendChild(dateElement);
+
+        const nameElement = document.createElement('p');
+        nameElement.textContent = `Name: ${assessment.name}`;
+        assessmentDiv.appendChild(nameElement);
+
+        const componentsList = document.createElement('ul');
+        assessment.components.forEach(component => {
+            const componentItem = document.createElement('li');
+            componentItem.innerHTML = `${component.name}: ${component.value} - <em>${component.description}</em>`;
+            componentsList.appendChild(componentItem);
+        });
+        assessmentDiv.appendChild(componentsList);
+
+        const recommendationsElement = document.createElement('div');
+        recommendationsElement.innerHTML = `<strong>Recommendations:</strong> ${assessment.recommendations}`;
+        assessmentDiv.appendChild(recommendationsElement);
+
+        const buttonGroup = document.createElement('div');
+        buttonGroup.className = 'btn-group';
+
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.className = 'btn btn-danger btn-sm';
+        deleteButton.addEventListener('click', () => {
+            if (confirm('Are you sure you want to delete this assessment?')) {
+                deleteAssessment(index);
+            }
+        });
+        buttonGroup.appendChild(deleteButton);
+
+        const exportButton = document.createElement('button');
+        exportButton.textContent = 'Export';
+        exportButton.className = 'btn btn-secondary btn-sm';
+        exportButton.addEventListener('click', () => {
+            exportSingleAssessment(index);
+        });
+        buttonGroup.appendChild(exportButton);
+
+        assessmentDiv.appendChild(buttonGroup);
+        assessmentsContainer.appendChild(assessmentDiv);
+    });
+}
+
+function deleteAssessment(index) {
+    let assessments = loadAssessments();
+    assessments.splice(index, 1);
+    localStorage.setItem('assessments', JSON.stringify(assessments));
+    displayAssessments();
+}
+
+function clearAllAssessments() {
+    if (confirm('Are you sure you want to clear all assessments?')) {
+        localStorage.removeItem('assessments');
+        displayAssessments();
+    }
+}
+
+function exportSingleAssessment(index) {
+    const assessments = loadAssessments();
+    const assessment = assessments[index];
+    const csvContent = "data:text/csv;charset=utf-8," + 
+        "Name,Date,Component,Value\n" +
+        assessment.components.map(comp => `${assessment.name},${new Date(assessment.date).toLocaleString()},${comp.name},${comp.value}`).join("\n");
+    
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", encodeURI(csvContent));
+    downloadAnchorNode.setAttribute("download", `${assessment.name}.csv`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+
+document.getElementById('save-assessment-button').addEventListener('click', saveAssessment);
+document.getElementById('clear-all-assessments-button').addEventListener('click', clearAllAssessments);
+document.addEventListener('DOMContentLoaded', displayAssessments);
+</script>
+</body>
+</html>
