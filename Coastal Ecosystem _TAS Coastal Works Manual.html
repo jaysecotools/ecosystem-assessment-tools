@@ -131,6 +131,9 @@ body {
     border: 1px solid #f5f5dc; /* Beige */
     color: #ddd;
 }
+        .bold-label {
+    font-weight: bold; // Added to make labels bold
+}
     </style>
 </head>
 <body>
@@ -385,6 +388,7 @@ function renderSliders() {
 
         const label = document.createElement('label');
         label.textContent = component.name;
+        label.className = 'bold-label'; // Add this line to make the label bold
         sliderWrapper.appendChild(label);
 
         const slider = document.createElement('input');
