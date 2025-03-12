@@ -1,4 +1,4 @@
-l<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -9,8 +9,21 @@ l<!DOCTYPE html>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background: linear-gradient(to right, #e0f7fa, #f1f8e9); /* Fallback gradient */
+            background: linear-gradient(to right, #e0f7fa, #f1f8e9);
             color: #333;
+            position: relative;
+        }
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('background.jpg') no-repeat center center fixed;
+            background-size: cover;
+            opacity: 0.5; /* Default opacity for background image */
+            z-index: -1;
         }
         .header {
             background-color: #4CAF50;
@@ -80,7 +93,7 @@ l<!DOCTYPE html>
                         </a>
                     </div>
                 </div>
-            </div
+            </div>
             <!-- Tool 2 Placeholder -->
             <div class="col-md-4">
                 <div class="card tool-card">
@@ -249,7 +262,7 @@ l<!DOCTYPE html>
                     </div>
                 </div>
             </div>  
-              <!-- Tool 16 Placeholder -->
+            <!-- Tool 16 Placeholder -->
             <div class="col-md-4">
                 <div class="card tool-card">
                     <div class="card-body text-center">
@@ -291,7 +304,7 @@ l<!DOCTYPE html>
                     <div class="card-body text-center">
                         <h5 class="card-title">Home Bushfire Preparedness</h5>
                         <p class="card-text">Evaluate your home's readiness for bushfire scenarios.</p>
-                        <a href="Home Bushfire Preparedness Tool_Advanced1.2_USE THIS ONE" class="btn btn-success" target="_self">
+                        <a href="Home Bushfire Preparedness Tool_Advanced1.2_USE THIS ONE.html" class="btn btn-success" target="_self">
                             Launch Tool
                         </a>
                     </div>
