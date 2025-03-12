@@ -134,6 +134,10 @@ body {
     border: 1px solid #555;
     color: #ddd;
 }
+/* Add this CSS class for bold labels */
+.bold-label {
+font-weight: bold;
+}
     </style>
 </head>
 <body>
@@ -318,6 +322,7 @@ function renderSliders() {
 
         const label = document.createElement('label');
         label.textContent = component.name;
+        label.className = 'bold-label'; // Add this line to make the label bold
         sliderWrapper.appendChild(label);
 
         const slider = document.createElement('input');
