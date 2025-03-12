@@ -147,7 +147,7 @@
                 <li>Adjust the sliders to reflect the current state of each component (0 is worst, 5 is best).</li>
                 <li>The overall health score will be calculated based on the selected components and their values.</li>
                 <li>A visual representation of the farm's health is provided in the radar chart below.</li>
-                <li>Note: Refresh the page to see saved assessments.</li>
+                <li>Saved assessments will be displayed at the bottom of the page.</li>
             </ol>
         </div>
         <div class="checkbox-group">
@@ -557,6 +557,11 @@
             const dateString = `Date: ${currentDate.toLocaleDateString()} Time: ${currentDate.toLocaleTimeString()}`;
             doc.setFontSize(12);
             doc.text(dateString, 20, 30);
+    
+            // Add the overall health score
+            const overallScore = calculateOverallScore();
+            doc.setFontSize(14);
+            doc.text(`Overall Health Score: ${overallScore}%`, 20, 40);
 
             if (radarChartCanvas) {
                 const chartImage = radarChartCanvas.toDataURL('image/png');
@@ -607,7 +612,10 @@
             let assessments = JSON.parse(localStorage.getItem('assessments')) || [];
             assessments.push(assessment);
             localStorage.setItem('assessments', JSON.stringify(assessments));
-            alert('Assessment saved successfully! Refresh the page to see saved assessments.');
+            alert('Assessment saved successfully!');
+
+            // Auto-update the assessments display
+            displayAssessments();
         }
 
         function loadAssessments() {
