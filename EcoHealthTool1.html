@@ -616,7 +616,10 @@ function saveAssessment() {
     let assessments = JSON.parse(localStorage.getItem('assessments')) || [];
     assessments.push(assessment);
     localStorage.setItem('assessments', JSON.stringify(assessments));
-    alert('Assessment saved successfully! Refresh the page to see saved assessments.');
+    alert('Assessment saved successfully!');
+
+    // Auto-update the assessments display
+    displayAssessments();
 }
 
 
