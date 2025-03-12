@@ -602,6 +602,12 @@ document.getElementById('download-pdf-button').addEventListener('click', () => {
     const dateString = `Date: ${currentDate.toLocaleDateString()} Time: ${currentDate.toLocaleTimeString()}`;
     doc.setFontSize(12);
     doc.text(dateString, 20, 30);
+    
+    // Add the overall health score
+    const overallScore = calculateOverallScore();
+    doc.setFontSize(14);
+    doc.text(`Overall Health Score: ${overallScore}%`, 20, 40);
+
     if (radarChartCanvas) {
         const chartImage = radarChartCanvas.toDataURL('image/png');
         doc.addImage(chartImage, 'PNG', 20, 40, 160, 160);
@@ -652,7 +658,10 @@ function saveAssessment() {
     let assessments = JSON.parse(localStorage.getItem('assessments')) || [];
     assessments.push(assessment);
     localStorage.setItem('assessments', JSON.stringify(assessments));
-    alert('Assessment saved successfully! Refresh the page to see saved assessments.');
+    alert('Assessment saved successfully!');
+
+    // Auto-update the assessments display
+    displayAssessments();
 }
 
 function loadAssessments() {
