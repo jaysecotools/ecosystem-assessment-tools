@@ -565,6 +565,11 @@ document.getElementById('download-pdf-button').addEventListener('click', () => {
     const dateString = `Date: ${currentDate.toLocaleDateString()} Time: ${currentDate.toLocaleTimeString()}`;
     doc.setFontSize(12);
     doc.text(dateString, 20, 30);
+ 
+    // Add the overall health score
+    const overallScore = calculateOverallScore();
+    doc.setFontSize(14);
+    doc.text(`Overall Health Score: ${overallScore}%`, 20, 40);
 
     if (radarChartCanvas) {
         const chartImage = radarChartCanvas.toDataURL('image/png');
